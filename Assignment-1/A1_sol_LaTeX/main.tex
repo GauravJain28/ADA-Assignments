@@ -1,0 +1,397 @@
+\documentclass[a4paper]{article} 
+\input{head}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\newcommand{\algrule}[1][.2pt]{\par\vskip.5\baselineskip\hrule height #1\par\vskip.5\baselineskip}
+\begin{document}
+
+%-------------------------------
+%	TITLE SECTION
+%-------------------------------
+
+\title{\textbf{COL351 : Analysis and Design of Algorithm \\ Assignment 1 }}
+\author{Gaurav Jain (2019CS10349) \& T Abishek (2019CS10407)}
+\date{}
+%-------------------------------
+%	CONTENTS
+%-------------------------------
+
+\maketitle
+\section{Minimum Spanning Tree}
+Let G be an edge-weighted graph with n vertices and m edges satisfying the condition that all the edge weights in G are distinct.
+\begin{enumerate}[label=(\alph*)]
+    
+    \item Prove that G has a unique MST.\\
+    \newline Solution: \underline{Proof by Contradiction:}\\\\
+    Let T and T' be two different MSTs of G. Since both T and T' have same number of vertices and are different, there exists at least one edge that belongs to one and not the other. Let the set of such edges be called P.\\\\
+    Let the edge with minimum weight among these edges be $e_1$. This edge is unique since all edge weights are distinct. Without loss of generality, assume $e_1$ is in T. If $e_1$ is added to MST T', it will form a cycle C with $e_1$ as one of the edges due to the property of tree. Since, T is a tree (acyclic), there must be at least one edge $e_2$ present in cycle C but not in T because if only edges from tree T is present in cycle C, a cycle wouldn't form.\\
+    This $e_2$ belongs to T' and not T and thus also belongs to set P. As $e_1$ is the minimum weight edge from set P, wt($e_1$) \textless \ wt($e_2$), as all edge weights are distinct. If $e_2$ is removed from T' U \{$e_1$\}, (T' U \{$e_1$\}) \textbackslash \{$e_2$\} will still be a spanning tree as all paths passing through $e_2$ can be redirected through $e_1$. \\
+    Thus, (T' U \{$e_1$\}) \textbackslash \{$e_2$\} is a spanning tree with cost wt(T') + wt($e_1$) - wt($e_2$). Since wt($e_1$) \textless \ wt($e_2$), the new weight of this newly formed tree is less than T'. This is a \textbf{contradiction}, as we assumed that T' is a MST.\\\\
+    Thus, G has a unique MST. {\hfill\qedsymbol}
+    
+    \newpage
+    \item If it is given that G has at most n + 8 edges, then design an algorithm that returns a MST of G in O(n) running time.
+    
+    \textbf{Observations:}
+    \begin{enumerate}[1)]
+        \item Since $m \leq n+8$ and number of edges in a MST is $n-1$, we need to remove atmost 9 edges without disconnecting the graph.
+        \item Cycles can be detected using DFS which taken $O(m+n)$ time but since $m \leq n+8$ so DFS will taken $O(n)$ time.
+    \end{enumerate}
+    
+    \textbf{Algorithm:}
+    \begin{algorithm}
+    \caption{MST Algorithm}\label{alg:mst}
+    \begin{algorithmic}[1]
+    \Procedure{MST}{$G$}\Comment{Returns the MST of graph G}
+    \State $n \to$ number of vertices.
+    \State $m \to$ number of edges and $m \leq n+8$.
+    \While{$m \not= n-1$}
+    \State $S \gets \textsc{DetectCycle}(G)$
+    \State $e \gets$ Maximum edge weight in S
+    \State $G\gets G \setminus \{e\}$
+    \State $m \gets m-1$
+    \EndWhile\label{mstendwhile}
+    \State \textbf{return} $G$\Comment{G is the MST of the original graph}
+    \EndProcedure
+    \algrule
+    \Procedure{DetectCycle}{$G$}\Comment{Returns a set of edges that form a cycle in G}
+    \State $S \gets \{\}$
+    \State $visited \gets false$ for all vertices.
+    \State $parent \gets -1$ for all vertices.
+    \State $start \gets -1$
+    \State $end \gets -1$
+    \For{all $v \in V$}
+    \If{$visited(v) = false$}
+    \State $\textsc{DFS}(v,parent(v))$
+    \EndIf
+    \EndFor
+    \State $v \gets end$
+    \While{$v \not= start$}
+        \State Add $v$ to $S$
+        \State $v \gets parent(v)$
+    \EndWhile
+    \State \Return $S$ \Comment{$S$ is the set of edges of a cycle}
+    \EndProcedure
+    \algrule
+    \Procedure{DFS}{$v,parent$}\Comment{Recursive function to visit vertices}
+    \State $visited(v) \gets true$
+    \For{all $u$, neighbours of $v$}
+    \If{$u=parent$} \textbf{continue}
+    \EndIf
+    \If{$visited(u)=true$}\Comment{Cycle Detected} 
+    \State $end \gets u$
+    \State $start \gets v$
+    \State \Return
+    \EndIf
+    \State $parent(u) \gets v$
+    \State \textsc{DFS}($u,parent(u)$)
+    \EndFor
+    \EndProcedure
+    \end{algorithmic}
+    \end{algorithm}
+    
+    \textbf{Correctness of Algorithm:}
+    
+    \underline{\textbf{Claim 1:}} Let $C$ be any cycle in $G$, and let edge $e = (v, w)$ be the most expensive edge belonging to $C$. Then $e$ does not belong to any minimum spanning tree of $G$.
+    
+    \underline{\textbf{Proof:}} Proof by Contradiction \\
+    Delete $e$ from $T$, the MST of $G$; this partitions the vertices into two components: $S$, containing node $v$; and $V \setminus S$, containing node $w$. Now, the edge we use in place of $e$ should have one end in $S$ and the other in $V \setminus S$, so as to stitch the tree back together.
+    
+    We can ﬁnd such an edge by following the cycle $C$. The edges of $C$ other than $e$ form, by deﬁnition, a path $P$ with one end at $v$ and the other at $w$. If we follow $P$ from $v$ to $w$, we begin in $S$ and end up in $V \setminus S$, so there is some edge $e' = (v',w')$ on $P$ that crosses from $S$ to $V \setminus S$.
+    
+    Now consider the set of edges $T'$ = $T \setminus \{e\} \cup \{e'\}$. We claim that $T'$ is a spanning tree. Clearly $(V,T')$ is connected, since $(V,T)$ is connected, and any path in $(V,T)$ that used the edge $e = (v,w)$ can now be “rerouted” in $(V,T')$ to follow the portion of $P$ from $v$ to $v'$, then the edge $e'$, and then the portion of $P$ from $w$ to $w'$. 
+    
+    To see that $(V,T')$ is also acyclic, note that the only cycle in $(V,T\cup\{e'\})$ is the one composed of $e'$ and the path $P$, and this cycle is not present in $(V,T')$ due to the deletion of $e$.
+    Moreover, since $e$ is the most expensive edge on the cycle $C$, and $e'$ belongs to $C$, it must be that $e'$ is cheaper than $e$, and hence $T'$ is cheaper than $T$, a contradiction. {\hfill\qedsymbol}
+    
+    \bigskip
+    \underline{\textbf{Proof of Correctness:}}\\
+    Consider any edge $e = (v, w)$ removed by the algorithm. At the time that $e$ is removed it is the most expensive edge on $C$. Thus by claim 1, $e$ does not belong to any minimum spanning tree.
+
+    So if we show that the output $(V,T)$ of the algorithm is a spanning tree of $G$, we will be done. Clearly $(V,T)$ is connected as only edges present in a cycle are removed by the algorithm. Since number of edges in $(V,T)$ is $n-1$ as the algorithm terminates here. Thus, $(V,T)$ is acyclic and hence it is a spanning tree. {\hfill\qedsymbol}
+\end{enumerate}
+
+\newpage
+\section{Huffman Encoding}
+
+\begin{enumerate}[(a)]
+    \item What is the optimal binary Huffman encoding for n letters whose frequencies are the first n Fibonacci numbers? What will be the encoding of the two letters with frequency 1, in the optimal binary Huffman encoding? \\ \\ 
+    Sketch of Huffman encoding algorithm (taken from notes)
+    \begin{enumerate}[(1)]
+        \item Replace the two letters with least frequency by a new symbol $\tilde{a}$.
+        \item Set freq($\tilde{a}$) = $\tilde{f}$ := $f_0$ + $f_1$.
+        \item Solve $\tilde{F}$ = $(F \cup \tilde{f}) \setminus \{f_0, f_1\}$ and find optimal binary tree $\tilde{T}$.
+        \item If $\tilde{a}$ is node for $\tilde{f}$, then add children $a_0$ and $a_1$ to $\tilde{a}$.
+        
+    \end{enumerate}
+    Let the frequency vector be $F$ where $F[i]$ represents the $i^{th}$ Fibonacci number.\hfill \\ \\
+    \underline{\textbf{Claim 1:}} $ \forall n \leq N, F[n] \leq \sum_{i=1}^{n-1} F[i] < F[n+1]$ \\ \\
+    \underline{\textbf{Proof:}} Proof by Induction on $n$ \\
+    {\textit{Base Case:} \par}
+    {\hspace{10mm}    $n = 2$ \par} 
+    {\hspace{10mm}    $F[2] = 1$ \par} 
+    {\hspace{10mm}    $\sum_{i=1}^{1} F[i] = F[1] = 1$ \par}
+    {\hspace{10mm}    $F[3] = 2$ \par}
+    {\hspace{10mm} Thus, \par}
+    {\hspace{10mm}    $F[2] \leq \sum_{i=1}^{1} F[i] < F[3]$ \par}
+    {\textit{Induction Hypothesis:} 
+    \par}
+    {\hspace{10mm} $F[n-1] \leq \sum_{i=1}^{n-2} F[i] < F[n]$ \par}
+    {\textit{Induction Step:} \par}
+    {\hspace{10mm} $F[n-1] \leq \sum_{i=1}^{n-2} F[i]$   \hfill (Induction Hypothesis)\par} 
+    {\hspace{10mm}    $F[n-1] + F[n-1] \leq \sum_{i=1}^{n-2} F[i] + F[n-1]$ \par}
+    {\hspace{10mm}    $\sum_{i=1}^{n-1} F[i] \geq F[n-1] + F[n-1] \geq F[n-1] + F[n-2]$ \par}
+    {\hspace{10mm}    $\sum_{i=1}^{n-1} F[i] \geq F[n]$  \hfill (A) \par}
+    {\par}
+    {\hspace{10mm} $\sum_{i=1}^{n-2} F[i] < F[n]$   \hfill (Induction Hypothesis)\par} 
+    {\hspace{10mm}    $\sum_{i=1}^{n-2} F[i] + F[n-1] < F[n] + F[n-1]$ \par}
+    {\hspace{10mm}    $\sum_{i=1}^{n-1} F[i] < F[n+1]$ \hfill (B)\par}
+    {\hspace{10mm} From (A) and (B), $F[n] \leq \sum_{i=1}^{n-1} F[i] < F[n+1]$.\par}
+    By PMI, $ \forall n \leq N, F[n] \leq \sum_{i=1}^{n-1} F[i] < F[n+1]$.
+    {\hfill$\qedsymbol$}\\
+    
+    
+    \underline{\textbf{Claim 2:}} In $k^{th}$ recursive call, the least two frequency symbols are $\sum_{i=1}^{k} F[i]$ and $F[k+1]$.\\ \\
+    \underline{\textbf{Proof:}} Proof by Induction on $k$ \\
+    {\textit{Base Case:} \par}
+    {\hspace{10mm}    $k = 1$ \par} 
+    {\hspace{10mm}  Initially, the least two frequencies in $F$ are $F[1]$ and $F[2]$.\par}
+    {\hspace{10mm}  So, $\sum_{i=1}^{1} F[i]$ and $F[2]$ are least two frequency symbols.\par}
+    {\textit{Induction Hypothesis:} 
+    \par}
+    {\hspace{10mm} $\sum_{i=1}^{k-1} F[i]$ and $F[k]$ are least two frequencies in $(k-1)^{th}$ call.\par}
+    {\textit{Induction Step:} \par}
+    {\hspace{10mm} Applying the algorithm on $(k-1)^{th}$ call, we get a new symbol $\tilde{a}$ with frequency $\tilde{f}$.\par}
+    {\hspace{10mm} Freq $\tilde{f} = \sum_{i=1}^{k-1} F[i] + F[k]$ as these two are least two frequencies (by induction hypothesis).\par}
+    {\hspace{10mm} So, the new frequency vector for next call $\tilde{F_k}$ is \par}
+    {\begin{equation}
+        \tilde{F_k} = [ \sum_{i=1}^{k} F[i], F[k+1], F[k+2] \dots F[N]]
+    \end{equation}}
+    {\hspace{10mm} Using the first claim, \par}
+    {\begin{equation}
+        F[k+1] \leq \sum_{i=1}^{k} F[i] < F[k+2] < F[k+3] \dots < F[n]
+    \end{equation}}
+    {\hspace{10mm}Thus when the algorithm is called using this frequency vector. \par}
+    {\hspace{10mm} The least two frequencies are $\sum_{i=1}^{k} F[i]$ and $F[k+1]$.\par}
+    Hence, by PMI, the above claim is true for all recursive calls. {\hfill$\qedsymbol$}\\ 
+    
+    
+    Binary Encoding of all symbols is determined using claim 2. So, in the last recursive call, the only two frequencies are $\sum_{i=1}^{n-1} F[i]$ and $F[n]$ and they are encoded as `0' and `1' respectively.
+    
+    $\sum_{i=1}^{n-1} F[i]$ is formed by combining $\sum_{i=1}^{n-2} F[i]$ and $F[n-1]$. Thus, encoding of $\sum_{i=1}^{n-2} F[i]$ and $F[n-1]$ are `00' and `01' respectively.
+    
+    After expanding all the merged symbols, the final encoding of symbols are:
+    
+    {\hspace{10mm} $F[n] \to$ `1'\par}
+    {\hspace{10mm} $F[n-1] \to$ `01'\par}
+    {\hspace{10mm} $F[n-2] \to$ `001'\par}
+    {\hspace{10mm} $\dots$\par}
+    {\hspace{10mm} $\dots$\par}
+    {\hspace{10mm} $\dots$\par}
+    {\hspace{10mm} $\dots$\par}
+    {\hspace{10mm} $F[3] \to$ `00....001' (n-3 zeros)\par}
+    {\hspace{10mm} $F[2] \to$ `00....001' (n-2 zeros)\par}
+    {\hspace{10mm} $F[1] \to$ `00....000' (n-1 zeros)\par}
+    \newpage
+     \item Suppose you aim to compress a file with 16-bit characters such that the maximum character frequency is strictly less than twice the minimum character frequency. Prove that the compression obtained by Huffman encoding, in this case, is same as that of the ordinary fixed-length encoding.\\
+     
+     \underline{\textbf{Property P:}} maximum frequency \textless \ 2*min frequency\\
+     
+     \underline{\textbf{Given:}} 16 bit characters with maximum frequency \textless \ 2*min frequency\\
+     
+     \underline{\textbf{Claim:}} The Huffman encoding with n bit characters is reducible to n-1 bit characters by merging 2 characters and representing it as a single character using n-1 bits, following the same property i.e, maximum frequency \textless \ 2*min frequency\\
+     
+     \underline{\textbf{Proof:}}\\
+     Let N = $2^n$ and F = [$f_1$, $f_2$ ....., $f_N$] be the frequencies sorted in ascending order.\\
+     Merging the least frequencies according to Huffman algorithm.\\
+     
+     $\Rightarrow \tilde{f_1}$ = $f_1$ + $f_2$\\
+     {Since $f_N < 2*f_1 $\par}
+     {\hspace{10mm} $\Rightarrow f_1 + f_2 \geq 2*f_1 > f_N$ \par}
+     {\hspace{10mm} $\Rightarrow f_1 + f_2 > f_i \ \ \forall i = 1, 2.... N$ \par}
+     {Thus the new sorted frequency vector is [$f_3, f_4,......f_N, \tilde{f_1}$]\\
+     Recursively merge the least two frequency characters to form a single character of the combined frequency, N/2 times. We get the new frequency vector as,\par}
+    {\hspace{10mm} $\tilde{F} = [\tilde{f_1}, \tilde{f_2},.....\tilde{f_{N/2}}]$\par}
+    {\hspace{10mm} where $\tilde{f_i} = f_{i*2-1} + f_{i*2}$\par}
+    {\hspace{10mm} max($\tilde{F}$) = $f_{N-1} + f_N$ \par}
+    {\hspace{10mm} min($\tilde{F}$) = $f_{1} + f_2$ \par}
+    {\hspace{10mm} Since $f_N < 2*f_1 \ and \ f_{N-1} \leq f_N < 2*f_1 \leq 2*f_2$\par}
+    {\hspace{10mm} So, $f_N + f_{N-1} < 2f_1 + 2f_2$ \par}
+    {\hspace{10mm} $\Rightarrow$ max($\tilde{F}$)  $<$ 2min($\tilde{F}$) \par }
+Thus, $\tilde{F}$ represents frequency vector of $2^{N-1}$ characters or n-1 bit characters with same property.{\hfill$\qedsymbol$}\\
+
+\underline{\textbf{Proof:}} Proof by Induction on number of bits \\
+    {\textit{Base Case:} \par}
+    {\hspace{10mm}    $n = 1$ \par} 
+    {\hspace{10mm}  Number of characters = $2^1$\par}
+    {\hspace{10mm}  Huffman encoding is `0' and `1'\par}
+    {\hspace{10mm}  Huffman encoding is `0' and `1'\par}
+    
+{\textit{Induction Hypothesis:}}\\
+Huffman encoding for n-1 bit characters which follow property P is same as fixed length encoding of length n-1.\\
+
+{\textit{Induction Step:}}\\
+Using the claim proved above, n bit characters are merged to form n-1 bit characters with same property P.
+By induction hypothesis, these n-1 bit characters has fixed length encoding and forms a complete binary tree.\\
+Expand the merged symbols in n-1 bit characters i.e, expand each leaf node present at height n-1 to get 2 children which is present at height h. These resulting nodes represent the n bit characters that were merged to form the n-1 bit Huffman tree and thus the resulting tree is the Huffman tree for n bit characters.\\
+As the height of all leaf nodes in the resulting tree is n, it too forms a complete binary tree. Thus, they have fixed length encoding as all the characters require n bits to represent them.\\
+
+Hence, By PMI, compression obtained by Huffman encoding of 16 bit characters is same as fixed length encoding of length 16.{\hfill$\qedsymbol$}
+
+
+
+\end{enumerate}
+
+\newpage
+\section{Graduation Party of Alice}
+\begin{enumerate}[(a)]
+    \item Alice wants to throw a graduation party and is deciding whom to call. She has n people to choose from, and she has made up a list of which pairs of these people know each other. She wants to pick a largest subset of n people, subject to two constraints: at the party, each person should have at least five other people whom they know and five other people whom they don’t know. Present an efficient algorithm that takes as input the list of n people along with the list of pairs who know each other and outputs the best choice of party invitees. Give the running time in terms of n.
+    
+    \textbf{Algorithm:}
+    \begin{algorithm}
+    \caption{Selection Algorithm}\label{alg:sa}
+    \begin{algorithmic}[1]
+    \Procedure{Select}{list of people, list of pairs}\Comment{Returns the maximal set of people possible}
+    \State $G \to$ Undirected Graph produced using every person as a vertex
+    \State $n \to$ number of vertices/people
+    \State $m \to$ number of edges. An edge is added between two people if they know each other.
+    \State $change \gets true$
+    \State $current \gets n$
+    \State $D \gets$ array of buckets where vertices are arranged by their degree
+    \While{$change = true$}
+    \State $change \gets false$
+    \For{$v \in D$ with $deg(v) <5$ and $current > deg(v) > current-5$}
+    %\If{$v$ is marked} \textbf{continue}
+    %\EndIf
+    %\If{$deg(v) < 5$}
+    \State $change \gets true$
+    \State $current \gets current-1$
+    \State \textsc{RemoveVertex}($G,v$)
+    %\EndIf
+    
+    %\If{$current - deg(v) < 5$}
+    %\State $change \gets true$
+    %\State $current \gets current-1$
+    %\State \textsc{RemoveVertex}($G,v$)
+    %\EndIf
+    
+    \EndFor
+    \EndWhile\label{saendwhile}
+    \State \textbf{return} the set of unmarked vertices
+    \EndProcedure
+    \algrule
+    \Procedure{RemoveVertex}{$G,v$}\Comment{Reduces degrees of vertices connected to $v$}
+    \State Mark $v$ \Comment{$v$ is removed from invitees list}
+    \State $D[deg(v)].\textsc{remove}(v)$
+    \For{$j$ from $1$ to $deg(v)$}
+    \State $u \gets adj(v)(j)$
+    \If{$u$ is marked} 
+    \State \textbf{continue}
+    \EndIf
+    %\State Delete $v$ from $adj(u)$
+    \State $deg(u) \gets deg(u)-1$
+    \State $D[deg(u)+1].\textsc{remove}(u)$
+    \State $D[deg(u)].\textsc{insert}(u)$
+    \EndFor
+    \EndProcedure
+    \end{algorithmic}
+    \end{algorithm}
+    
+    \textbf{Runtime Analysis:}\\
+    The graph is stored in adjacency list as a HashMap mapping each vertex to an unordered set of connected vertices. The time taken to make the graph is $O(m)$.
+    Degree of all vertices is also stored separately as a HashMap to give $O(1)$ access to degrees of each vertex and updated accordingly.
+    
+    The degree of all the vertices is then sorted using bucket sort with each bucket being an unordered set(Hash) of vertices which allows us to insert and remove in  $O(1)$ time. The buckets themselves are stored as an array of buckets of size N, with the index of the bucket representing the degree of the vertices stored in them. The initial sorting takes $O(m)$ as it is done through a single pass.
+    
+    The inner FOR loop inside the WHILE loop in the Select procedure, is also run only $O(n)$ times as each iteration, a vertex is removed, and the maximum no. of vertices that can be removed is n. 
+    
+    Since the number of edges are $m$ so the procedure \textsc{RemoveVertex}'s FOR loop runs atmost $2*m$  over all the calls as the procedure is called for each vertex only once, and the for loop is run degree(v) times. Sum of the degrees of all the vertices is $2*m$. So the overall running time of the algorithm is $O(m+n)$.
+    Since $m \leq n^2$ so the time complexity is $O(n^2)$.
+    
+    \textbf{Correctness of Algorithm:}\\
+    In each iteration of the algorithm, vertices or people which can never be part of the optimal invitation list are removed as such people know less than 5 or such people don't know less than 5 people. At each iteration, we must remove at least one person, so this algorithm terminates. 
+    
+    When this algorithm terminates, by definition the subset of invitees is valid. Since we only remove people we have deduced could not possibly be invited, we always produce the largest possible number of invitees. {\hfill\qedsymbol}
+    
+    \newpage
+    \item Suppose finally Alice invited $n_0$ out of her n friends to the party. Her next task is to set a minimum number of dinner tables for her friends under the constraint that each table has a capacity of ten people and the age difference between members of each dining group should be at most ten years. Present a greedy algorithm to solve this problem in $O(n_0)$ time assuming the age of each person is an integer in the range [10, 99].
+    
+    \begin{algorithm}
+    \caption{Minimum tables Algorithm}\label{alg:arr}
+    \begin{algorithmic}[1]
+    \Procedure{Minimum}{$G$}
+    \State $n_0 \gets$ number of selected friends.
+    \State $Tables \gets \{\}$ 
+    \State $S \gets \textsc{sort}(G)$\Comment{sorted in ascending order of Age}
+    \While{$\textsc{size}(S) \not= 0$}
+        \State $start \gets \textsc{front}(S)$.Age
+        \State $T \gets NULL$
+        \State $T$.\textsc{insert}($S$.\textsc{pop\_front})
+        \State $k \gets 1$
+        \While{($\textsc{size}(S) \not= 0$ and $k < 10$ and $\textsc{front}(S).age \leq start + 10$)}
+            \State $T$.\textsc{insert}($S$.\textsc{pop\_front})
+            \State $k \gets k+1$
+        \EndWhile
+        \State $Tables$.\textsc{insert}($T$)
+    \EndWhile
+    \State \Return $Tables$
+    \EndProcedure
+    \end{algorithmic}
+    \end{algorithm}
+    
+    \textbf{Runtime Analysis:}\\
+    Sorting of people by age is possible in $O(n_0)$ time complexity using bucket sort as the range of age is fixed between $10$ and $99$. Every person present in the sorted list is only visited once because as soon as a vertex is visited, it is popped out of the list. Thus, the overall time complexity of the above algorithm is $O(n_0)$.
+    
+    \textbf{Correctness of Algorithm:}\\
+    \underline{\textbf{Claim:}} Let P be the set of
+    people that have to be assigned tables. Let $a_1$ be the age of the youngest person. Let T be a table that seats the youngest person in P in optimal arrangement. Let T' be a table that seats the youngest person in P by applying the greedy algorithm. Then $size(T') \geq size(T)$ and $youngest((P \setminus T')) \geq youngest((P \setminus T))$\\
+    
+    \underline{\textbf{Proof:}} \\
+    \underline{Case 1:} The no. of people with age $a_1$ is more than 10.\\
+    In this case, our greedy algorithm would form a table with all the 10 people of the same youngest age $a_1$.\\
+    $Size(T') = 10$ which is the maximum allowed. $youngest((P \setminus T')) = a_1$ as there is more than 10 people with that age. No matter what arrangement T has, $youngest((P \setminus T)) = a_1$ as there is more than 10 people with that age. So, the claim is proved.\\
+    
+    \underline{Case 2:} The no. of people with age $a_1$ is less than or equal to 10.\\
+    \phantom{Case 2:} \underline{Case 2.1:} $T = T'$\\
+    \phantom{Case 2:Case 2.1:} Claim is proved.
+    
+    \phantom{Case 2:} \underline{Case 2.2:} $T \not= T'$\\
+    \phantom{Case 2:Case 2.1:} Proof by contradiction\\
+    
+    \phantom{Case 2:Case 2.1:} Assume $size(T') < size(T)$\\
+    \phantom{Case 2:Case 2.1:} $=> \exists \ p_1$ present in T but not present in T' and size(T') $<$ 10.\\
+    \phantom{Case 2:Case 2.1:} But because $p_1 \nexists \ T' => p_1 > a_1 + 10$\\
+    \phantom{Case 2:Case 2.1:} $=> p_1 \nexists \ T$ as a person with age $a_1$ is present in T.\\
+    \phantom{Case 2:Case 2.1:} Contradiction arises. So, Assumption is false.\\
+    
+    \phantom{Case 2:Case 2.1:} Assume $youngest((P \setminus T')) < youngest((P \setminus T))$\\
+    \phantom{Case 2:Case 2.1:} All persons with age less than  $youngest((P \setminus T))$ is present in T, but only persons with \\
+    \phantom{Case 2:Case 2.1:} age less than $youngest((P \setminus T'))$ are present in T'.\\
+    \phantom{Case 2:Case 2.1:} $=> size(T') < size(T)$, due to the assumption, which is false as proved above.\\
+    \phantom{Case 2:Case 2.1:} Contradiction arises. So, Assumption is false.\\
+    
+    \phantom{Case 2:Case 2.1:} Claim is proved. {\hfill\qedsymbol}
+    
+    \bigskip
+    \underline{\textbf{Proof of Correctness:}}\\
+    At each step of the algorithm, where a table is assigned for the youngest person of the remaining people, it is shown by the above claim that both size of the assigned table by the algorithm is equivalent to optimal arrangement and the youngest person left to be assigned also is equivalent.
+    
+    As, the youngest person's age not assigned is greater than or equal to the optimal arrangement, this implies that the people not assigned a table at each step is minimised optimally in the greedy algorithm, as all the people below that age have been assigned a table. This shows that the greedy algorithm is working equivalent to an optimal algorithm, and in fact stays ahead of the optimal solution always. As this algorithm continues executing until all people are assigned a table, and at each step, at least 1 person is assigned a table, the algorithm terminates.\\
+    
+    The correctness of the above greedy algorithm is thus proved. {\hfill\qedsymbol}
+    
+    
+    
+    %\phantom{Case 2:Case 2.1:} \underline{Case 2.2.1:} There exists a person $p_1$ is present in T but not in T'.\\
+    %\phantom{Case 2:Case 2.1:Case 2.2.1:}  \\
+    %\phantom{Case 2:Case 2.1:Case 2.2.1:} This implies, there exists a person $p_2$ present in T' but not in T.\\
+    %\phantom{Case 2:Case 2.1:Case 2.2.1:} $=> age(p_1) \geq youngest((P \setminus T'))$\\ %\geq(p_2) $\\
+    %\phantom{Case 2:Case 2.1:Case 2.2.1:} $=> age(p_2) \geq youngest((P \setminus T)) $\\
+    %\phantom{Case 2:Case 2.1:Case 2.2.1:} $=> youngest((P \setminus T')) \geq youngest((P \setminus T))$\\
+    %\phantom{Case 2:Case 2.1:Case 2.2.1:}Claim is proved.\\
+    %\phantom{Case 2:Case 2.1:} \underline{Case 2.2.2:} $Size(T) \not= Size(T')$\\
+    %\phantom{Case 2:Case 2.1:Case 2.2.1:} 
+\end{enumerate}
+%------------------------------------------------
+
+\end{document}

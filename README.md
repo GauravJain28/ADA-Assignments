@@ -1,5 +1,5 @@
 # Analysis and Design of Algorithms Assignments
-These assignments are of the course COL351 : Analysis and Design of Algorithms offered in First (Diwali) Sem 2021-22 in IIT Delhi. All assignments contain solutions to the given problems and are typed in LaTeX.
+These assignments are of the course COL351 : Analysis and Design of Algorithms offered in First (Diwali) Sem 2021-22 in IIT Delhi. All assignments contain solutions to the given problems typed in LaTeX.
 
 ## Assignment 1
 * Problem statement - [click here](./Assignment-1/A1_ps.pdf) 

@@ -16,5 +16,5 @@ These assignments are of the course COL351 : Analysis and Design of Algorithms o
 * Solution LaTeX - [click here](./Assignment-3/A3_sol_LaTeX/) 
 
 ### Author:
-* Name : [Gaurav Jain](https://github.com/GAURAV-28) 
+* Name : [Gaurav Jain](https://github.com/GauravJain28) 
 * Entry Number : 2019CS10349
